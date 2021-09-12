@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cd $LAMBDA_TASK_ROOT
+export LD_LIBRARY_PATH=./lib
+./bin/hl bin/lambda_handler.hl

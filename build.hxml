@@ -1,0 +1,4 @@
+-main awslambda.runtime.HashLinkRuntime
+-hl bin/bin/lambda_handler.hl
+-cp src
+example.ExampleLambdaFunction
