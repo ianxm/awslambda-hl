@@ -28,9 +28,11 @@ inputs:
 
 To write your own lambda implementation, create a class with a method
 that takes a `Dynamic` and returns another `Dynamic`. The request
-event will be passed in as an anonymous object. lambdaHandler should
-return an anonymous object with the response, or throw a string
-containing an error message on failure. It must have an empty
+event will be passed in as an anonymous object. The lambdaHandler
+method should return an anonymous object with the response, or throw a
+`HashLinkRuntime.ServiceError` containing an error message on
+failure. `BadRequest` is meant for 4xx type errors. `InternalError` is
+meant for 5xx type errors. The handler object must have an empty
 constructor and be annotated with `@:keep`.
 
 The constructor will be called once at lambda container startup.  The
