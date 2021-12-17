@@ -69,8 +69,9 @@ class HashLinkRuntime {
                 getNext();
             } catch (e :Dynamic) {
                 Sys.println('error: $e');
-                Sys.println(haxe.CallStack.exceptionStack());
-                if (e == "Eof") {
+                if (e != "Eof") {
+                    Sys.println(haxe.CallStack.exceptionStack());
+                } else {
                     Sys.sleep(0.003); // wait a bit
                 }
             }
