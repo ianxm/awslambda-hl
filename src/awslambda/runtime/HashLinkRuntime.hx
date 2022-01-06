@@ -145,17 +145,17 @@ class HashLinkRuntime {
      * @param payload the HTTP payload
      */
     private function doPost(url :String, payload :String) {
-        Sys.println('response: $payload');
+        // Sys.println('response: $payload');
         var request = new Http(url);
         request.setHeader("User-Agent", USER_AGENT);
         request.setHeader("Content-Type", CONTENT_TYPE);
         request.setHeader("Content-Length", Std.string(payload.length));
         request.setPostData(payload);
         request.onData = function(data) {
-            Sys.println('result data: $data');
+            Sys.println('response sent: $data');
         }
         request.onError = function(msg) {
-            Sys.println('result error: $msg');
+            Sys.println('response not sent: $msg');
         }
         request.request(true);
     }
