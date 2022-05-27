@@ -28,7 +28,7 @@ class HashLinkRuntime {
 
     private static var VERSION(default,null) = "0.0.2";
     private static var USER_AGENT(default,null) = "AWS_Lambda_HashLink/" + VERSION;
-    private static var CONTENT_TYPE(default,null) = "text/html";
+    private static var CONTENT_TYPE(default,null) = "text/html; charset=utf-8";
 
     private static var HANDLER_NAME(default,null) = "_HANDLER"; // handler name is not used
     private static var ROOT_NAME(default,null) = "LAMBDA_TASK_ROOT";
@@ -88,6 +88,7 @@ class HashLinkRuntime {
         var nextReq = new Http(nextUrl);
         nextReq.setHeader("User-Agent", USER_AGENT);
         nextReq.onData = function(data) {
+            trace("got request");
             try {
                 var event = Json.parse(data);
                 requestId = nextReq.responseHeaders.get(REQUEST_ID_HEADER);
@@ -110,12 +111,14 @@ class HashLinkRuntime {
             }
         }
         nextReq.onError = function(msg) {
+            trace('got error: $msg');
             if (msg != "Eof") {
                 fatal = true;
                 postFailure({statusCode: 500, body: msg});
             }
             throw msg;
         }
+        trace('waiting for request');
         nextReq.request(false);
     }
 
