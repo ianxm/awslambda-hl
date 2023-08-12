@@ -51,10 +51,13 @@ class HashLinkRuntime {
 
     public function new() {
         runtimeUrl = Sys.getEnv(RUNTIME_API_NAME);
-        var fullHandlerName = Sys.getEnv(HANDLER_NAME); // "packageName.ClassName.methodName"
-        var handlerObjectName = fullHandlerName.substr(0, fullHandlerName.lastIndexOf("."));
+        var fullHandlerName = if( Sys.getEnv(HANDLER_NAME) != null ) // "packageName.ClassName.methodName"
+            Sys.getEnv(HANDLER_NAME);
+        else
+            Sys.args()[0];
+        var handlerClassName = fullHandlerName.substr(0, fullHandlerName.lastIndexOf("."));
         var handlerMethodName = fullHandlerName.substr(fullHandlerName.lastIndexOf(".")+1);
-        this.handlerObject = Type.createInstance(Type.resolveClass(handlerObjectName), []);
+        this.handlerObject = Type.createInstance(Type.resolveClass(handlerClassName), []);
         this.handlerMethod = Reflect.field(handlerObject, handlerMethodName);
     }
 
@@ -100,7 +103,7 @@ class HashLinkRuntime {
                         postFailure({statusCode: 400, body: 'bad request: $msg'});
                     }
                     case InternalError(msg): {
-                        postFailure({statusCode: 400, body: 'internal error: $msg'});
+                        postFailure({statusCode: 500, body: 'internal error: $msg'});
                         fatal = true;
                     }
                     default: {
@@ -111,14 +114,13 @@ class HashLinkRuntime {
             }
         }
         nextReq.onError = function(msg) {
-            trace('got error: $msg');
+            trace('ERROR: $msg');
             if (msg != "Eof") {
                 fatal = true;
                 postFailure({statusCode: 500, body: msg});
             }
             throw msg;
         }
-        trace('waiting for request');
         nextReq.request(false);
     }
 
