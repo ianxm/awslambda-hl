@@ -1,7 +1,7 @@
 package example;
 
 import Type; // for ValueType
-import awslambda.runtime.HashLinkRuntime; // for BadRequest
+import awslambda.runtime.LambdaProxyTypes;
 
 /**
  * This is an example lambda handler. Lambda handlers must:
@@ -30,7 +30,7 @@ class ExampleLambdaFunction {
 
         // validate input
         if( !validate(event.a) || !validate(event.b) ){
-            throw BadRequest("invalid request: event must provide \"a\" and \"b\", and they must be numbers");
+            throw new BadRequest("invalid request: event must provide \"a\" and \"b\", and they must be numbers", null);
         }
 
         // do stuff

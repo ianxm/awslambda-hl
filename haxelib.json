@@ -5,8 +5,8 @@
   "tags": ["hl","awslambda","serverless"],
   "description": "awslambda-hl is a hl runtime environment for aws lambda",
   "contributors": ["ianxm"],
-  "releasenote": "initial",
-  "version": "0.0.2",
+  "releasenote": "Return headers and status codes on error",
+  "version": "0.0.3",
   "url": "http://github.com/ianxm/awslambda-hl",
   "dependencies": {
   }

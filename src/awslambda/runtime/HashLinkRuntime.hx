@@ -8,11 +8,6 @@ import haxe.Json;
 
 import awslambda.runtime.LambdaProxyTypes;
 
-enum ServiceError {
-    BadRequest(message :String);    // 4xx type error, fail the request
-    InternalError(message :String); // 5xx type error, kill the lambda container
-}
-
 /**
  * Implements the aws lambda runtime api for hashlink
  * https://docs.aws.amazon.com/lambda/latest/dg/runtimes-custom.html.
@@ -36,9 +31,6 @@ class HashLinkRuntime {
 
     /* the base url we use to communicate with aws */
     private var runtimeUrl(default,default) :String;
-
-    /* the requestId for the current event */
-    private var requestId(default,default) :String;
 
     /* the object that will process events */
     public var handlerObject(null,default) :Dynamic;
@@ -72,11 +64,7 @@ class HashLinkRuntime {
                 getNext();
             } catch (e :Dynamic) {
                 Sys.println('error: $e');
-                if (e != "Eof") {
-                    Sys.println(haxe.CallStack.exceptionStack());
-                } else {
-                    Sys.sleep(0.003); // wait a bit
-                }
+                Sys.println(haxe.CallStack.exceptionStack());
             }
         }
         Sys.println("HashLink runtime exiting");
@@ -86,38 +74,28 @@ class HashLinkRuntime {
      * Get an event and process it.
      */
     private function getNext() {
-        requestId = null;
+        var requestId = null;
         var nextUrl = '$runtimeUrl/2018-06-01/runtime/invocation/next';
         var nextReq = new Http(nextUrl);
         nextReq.setHeader("User-Agent", USER_AGENT);
         nextReq.onData = function(data) {
-            trace("got request");
             try {
                 var event = Json.parse(data);
                 requestId = nextReq.responseHeaders.get(REQUEST_ID_HEADER);
                 var result = Reflect.callMethod(handlerObject, handlerMethod, [event]);
-                postSuccess(Json.stringify(result));
-            } catch (e :Dynamic) {
-                switch (e) {
-                    case BadRequest(msg): {
-                        postFailure({statusCode: 400, body: 'bad request: $msg'});
-                    }
-                    case InternalError(msg): {
-                        postFailure({statusCode: 500, body: 'internal error: $msg'});
-                        fatal = true;
-                    }
-                    default: {
-                        postFailure({statusCode: 500, body: 'problem in handler: $e'});
-                        fatal = true;
-                    }
-                }
+                postSuccess(requestId, Json.stringify(result));
+            } catch (e :ServiceError) {
+                postFailure(requestId, e.toResponse());
+            } catch (e) {
+                postFailure(requestId, {"statusCode": 500, "body": Json.stringify({"message": 'Problem in Handler: $e'})});
+                fatal = true;
             }
         }
         nextReq.onError = function(msg) {
             trace('ERROR: $msg');
             if (msg != "Eof") {
                 fatal = true;
-                postFailure({statusCode: 500, body: msg});
+                postFailure(requestId, {statusCode: 500, body: msg});
             }
             throw msg;
         }
@@ -127,7 +105,7 @@ class HashLinkRuntime {
     /**
      * Post a success message back to aws.
      */
-    private function postSuccess(payload :String) {
+    private function postSuccess(requestId :String, payload :String) {
         var url = '$runtimeUrl/2018-06-01/runtime/invocation/$requestId/response';
         doPost(url, payload);
     }
@@ -135,7 +113,8 @@ class HashLinkRuntime {
     /**
      * Post a failure message back to aws.
      */
-    private function postFailure(payload :Response) {
+    private function postFailure(requestId :String, payload :Response) {
+        Sys.println(haxe.CallStack.exceptionStack());
         var url = if( requestId != null )
             '$runtimeUrl/2018-06-01/runtime/invocation/$requestId/error';
         else
