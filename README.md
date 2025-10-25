@@ -13,7 +13,7 @@ directory containing the example implementation.
 To set up the lambda function in AWS
 1. create lambda function
 2. set the Runtime to 'Custom AL2'
-3. upload `lambda_function.zip` and save
+3. upload `lambda_handler.zip` and save
 4. set the 'Runtime settings' > 'Handler' to `example.ExampleLambdaFunction.lambdaHandler`
 
 The example lambda function is set up and ready. Here are some test
@@ -28,7 +28,7 @@ inputs:
 
 To write your own lambda implementation, create a class with a method
 that takes a `Dynamic` and returns another `Dynamic`. The request
-event will be passed in as an anonymous object. The lambdaHandler
+event will be passed in as an anonymous object. The `lambdaHandler`
 method should return an anonymous object with the response, or throw a
 `HashLinkRuntime.ServiceError` containing an error message on
 failure. `BadRequest` is meant for 4xx type errors. `InternalError` is
@@ -36,7 +36,8 @@ meant for 5xx type errors. The handler object must have an empty
 constructor and be annotated with `@:keep`.
 
 The constructor will be called once at lambda container startup.  The
-handler method will be called for each event.
+handler method will be called for each event. Lambda determins when
+new containers are needed and when existing containers are reused.
 
 Compile with `-lib awslambda-hl` to get the runtime. This will include
 a `main` method so you do not need to provide one. Since your handler
@@ -75,9 +76,14 @@ Integration](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up
 you can use the types defined in `awslambda.runtime.LambdaProxyTypes`
 for the input and output of your handler method.
 
-## Issues
+## EMF Metrics
 
-For some reason the first attempt to fetch the request from aws always
-fails with an Eof. the Http request is configured to wait until
-there's data, but it returns an Eof instead. It tries again in 3 ms
-and succeeds.
+You can write metrics to CloudWatch using the provided metrics
+classes. Metrics are written to the logs, and CloudWatch automatically
+extracts them and saves them as metrics in the background.
+
+Usage is straightforward. You basically create a `MetricsFactory`
+which specifies the CloudWatch namespace and metric dimensions, then
+get a `metrics` object from it and set metrics, then emit the metrics
+before exiting. Review the example lambda function to see how it is
+done and look at the cloudwatch documentation for details.

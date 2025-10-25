@@ -2,6 +2,7 @@ package example;
 
 import Type; // for ValueType
 import awslambda.runtime.LambdaProxyTypes;
+import awslambda.metrics.EmfMetricsFactory;
 
 /**
  * This is an example lambda handler. Lambda handlers must:
@@ -12,6 +13,8 @@ import awslambda.runtime.LambdaProxyTypes;
  */
 @:keep
 class ExampleLambdaFunction {
+    final metricsFactory = new EmfMetricsFactory("HlExampleLambda");
+
     /**
      * This is required.
      */
@@ -26,15 +29,22 @@ class ExampleLambdaFunction {
      * @throws string on error
      */
     public function lambdaHandler( event :Dynamic ) :Dynamic {
+        final metrics = metricsFactory.makeMetrics();
         Sys.println(Std.string(event));
 
         // validate input
         if( !validate(event.a) || !validate(event.b) ){
+            metrics.addCount("InvalidRequest");
+            metrics.emitMetrics();
             throw new BadRequest("invalid request: event must provide \"a\" and \"b\", and they must be numbers", null);
         }
 
         // do stuff
         var sum = event.a + event.b;
+
+        // write a metric
+        metrics.addCount("Success");
+        metrics.emitMetrics();
 
         // return response as an anonymous object
         return {sum: sum};
