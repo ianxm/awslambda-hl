@@ -61,18 +61,26 @@ class InternalError extends ServiceError {
 }
 
 typedef Request = {
-    resource :String,
-    path :String,
-    httpMethod :String,
+    // apigw httpApi
+    ?cookies :Dynamic,
+    ?isBase64Encoded :Bool,
+    ?requestContext :RequestContext,
+    ?stageVariables :Dynamic,
+    ?rawQueryString :String,
+    ?body :String,
     ?headers :Dynamic,
+    ?rawPath :String,
+    ?pathParameters :Dynamic,
+    ?routeKey :String,
+    ?version :String,
+
+    // apigw restApi
+    ?resource :String,
+    ?path :String,
+    ?httpMethod :String,
     ?multiValueHeaders :Dynamic,
     ?queryStringParameters :Dynamic,
-    ?multiValueQueryStringParameters :Dynamic,
-    ?pathParameters :Dynamic,
-    stageVariables :Dynamic,
-    requestContext :RequestContext,
-    body :String,
-    isBase64Encoded :Bool
+    ?multiValueQueryStringParameters :Dynamic
 };
 
 typedef Response = {
@@ -80,25 +88,40 @@ typedef Response = {
     statusCode :Int,
     ?headers :Dynamic,
     ?multiValueHeaders :Dynamic,
-    body :String,
+    body :String
 };
 
 typedef RequestContext = {
-    resourceId :String,
-    resourcePath :String,
-    httpMethod :String,
-    extendedRequestId :String,
-    requestTime :String,
-    path :String,
-    accountId :String,
+    // apigw httpApi
+    ?stage :String,
+    ?domainPrefix :String,
+    ?apiId :Int,
+    ?http :RequestHttpContext,
+    ?timeEpoch :Float,
+    ?accountId :String,
+    ?time :String,
+    ?domainName :String,
+    ?routeKey :String,
+    ?requestId :String,
+
+    // apigw restApi
+    ?resourceId :String,
+    ?resourcePath :String,
+    ?httpMethod :String,
+    ?extendedRequestId :String,
+    ?requestTime :String,
+    ?path :String,
+    ?protocol :String,
+    ?requestTimeEpoch :Float,
+    ?identity :RequestIdentity
+};
+
+typedef RequestHttpContext = {
+    userAgent :String,
     protocol :String,
-    stage :String,
-    domainPrefix :String,
-    requestTimeEpoch :Float,
-    requestId :String,
-    identity :RequestIdentity,
-    domainName :String,
-    apiId :String
+    sourceIp :String,
+    method :String,
+    path :String
 };
 
 typedef RequestIdentity = {
