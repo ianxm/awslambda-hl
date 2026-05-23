@@ -60,7 +60,7 @@ class InternalError extends ServiceError {
     }
 }
 
-typedef Request = {
+typedef RequestData = {
     // apigw httpApi
     ?cookies :Dynamic,
     ?isBase64Encoded :Bool,
@@ -82,6 +82,29 @@ typedef Request = {
     ?queryStringParameters :Dynamic,
     ?multiValueQueryStringParameters :Dynamic
 };
+
+@:forward
+abstract Request(RequestData) from RequestData to RequestData {
+    public inline function new(request :RequestData) {
+        this = request;
+    }
+
+    public function getHeader( name :String ){
+        final lcName = name.toLowerCase();
+        for( fieldName in Reflect.fields(this.headers) )
+            if( lcName == fieldName.toLowerCase() )
+                return Reflect.field(this.headers, fieldName);
+        return null;
+    }
+
+    public function getHeaderFieldName( name :String ){
+        final lcName = name.toLowerCase();
+        for( fieldName in Reflect.fields(this.headers) )
+            if( lcName == fieldName.toLowerCase() )
+                return fieldName;
+        return null;
+    }
+}
 
 typedef Response = {
     ?isBase64Encoded :Bool,
